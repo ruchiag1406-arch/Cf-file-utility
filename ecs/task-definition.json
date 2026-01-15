@@ -1,0 +1,29 @@
+{
+  "family": "cf-files-utility-task-new-v1",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::973811007952:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "cf-files-utility-new",
+      "image": "973811007952.dkr.ecr.ap-south-1.amazonaws.com/cf-files-utility:latest",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/cf-files-utility",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
