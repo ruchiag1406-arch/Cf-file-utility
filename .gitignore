@@ -1,0 +1,66 @@
+# =========================
+# Java / Maven
+# =========================
+target/*                     # Ignore all target output
+!target/*.jar                # Keep the main JAR for EB deployment
+.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+# IDEs
+# =========================
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+### VS Code ###
+.vscode/
+
+# =========================
+# Elastic Beanstalk
+# =========================
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# =========================
+# OS / Build Artifacts
+# =========================
+.DS_Store
+
+# =========================
+# Security / Secrets
+# =========================
+# SSH keys
+*.pem
+*.key
+.ssh/
+
+# Certificates / Keystores
+*.der
+*.jks
+*.p12
+certs/
+
+# Environment / local overrides
+.env
+application-local.properties
+
