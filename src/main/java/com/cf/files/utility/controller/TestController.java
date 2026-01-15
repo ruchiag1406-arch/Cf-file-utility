@@ -25,7 +25,7 @@ public class TestController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "Hi-v1 from task: " + hostname;
+        return "Hi-v2 from task: " + hostname;
     }
 
 	
