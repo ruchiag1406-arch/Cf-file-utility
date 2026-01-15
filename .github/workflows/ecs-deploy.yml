@@ -48,5 +48,5 @@ jobs:
       with:
         task-definition: ${{ steps.render-task-def.outputs.task-definition }}
         service: cf-files-utility-task-new-service
-        cluster: cf-files-utility-cluster-new
+        cluster: cf-files-utility-cluster
         wait-for-service-stability: true
