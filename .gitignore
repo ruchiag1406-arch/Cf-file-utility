@@ -1,8 +1,7 @@
 # =========================
 # Java / Maven
 # =========================
-target/*                     # Ignore all target output
-!target/*.jar                # Keep the main JAR for EB deployment
+target/
 .mvn/wrapper/maven-wrapper.jar
 
 # =========================
@@ -35,7 +34,7 @@ build/
 .vscode/
 
 # =========================
-# Elastic Beanstalk
+# Elastic Beanstalk (optional – safe to keep)
 # =========================
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
@@ -63,4 +62,3 @@ certs/
 # Environment / local overrides
 .env
 application-local.properties
-
