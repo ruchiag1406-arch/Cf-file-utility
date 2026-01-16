@@ -9,9 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout repo
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # 2️⃣ Configure AWS credentials
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -19,31 +21,44 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-south-1
 
+    # 3️⃣ Login to Amazon ECR
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Set ECR registry
-      run: echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
-
+    # 4️⃣ Build, tag, and push Docker image with unique tag and 'latest'
     - name: Build, tag, and push Docker image
       id: build-image
       run: |
-        IMAGE_URI=$ECR_REGISTRY/cf-files-utility:latest
-        docker build -t cf-files-utility .
-        docker tag cf-files-utility:latest $IMAGE_URI
-        docker push $IMAGE_URI
-        echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+        # Generate unique tag using git SHA + timestamp
+        IMAGE_TAG=${GITHUB_SHA::7}-$(date +%Y%m%d%H%M%S)
+        ECR_REPO=${{ steps.login-ecr.outputs.registry }}/cf-files-utility
 
-    - name: Fill in the new image ID in the Amazon ECS task definition
+        # Build Docker image
+        docker build -t cf-files-utility:$IMAGE_TAG .
+
+        # Tag image with unique tag and latest
+        docker tag cf-files-utility:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
+        docker tag cf-files-utility:$IMAGE_TAG $ECR_REPO:latest
+
+        # Push both tags
+        docker push $ECR_REPO:$IMAGE_TAG
+        docker push $ECR_REPO:latest
+
+        # Export the 'latest' image URI for ECS deployment
+        echo "image=$ECR_REPO:latest" >> $GITHUB_OUTPUT
+
+    # 5️⃣ Update ECS task definition JSON to use 'latest' image
+    - name: Render ECS task definition
       id: render-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ecs/task-definition.json
+        task-definition: ecs-task-def.json
         container-name: cf-files-utility-new
         image: ${{ steps.build-image.outputs.image }}
 
-    - name: Deploy Amazon ECS task definition
+    # 6️⃣ Deploy ECS service with the new task definition
+    - name: Deploy to ECS
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.render-task-def.outputs.task-definition }}

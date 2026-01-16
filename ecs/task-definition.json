@@ -9,13 +9,19 @@
     {
       "name": "cf-files-utility-new",
       "image": "973811007952.dkr.ecr.ap-south-1.amazonaws.com/cf-files-utility:latest",
+      "essential": true,
       "portMappings": [
         {
           "containerPort": 8080,
           "protocol": "tcp"
         }
       ],
-      "essential": true,
+      "environment": [
+        {
+          "name": "SERVER_PORT",
+          "value": "8080"
+        }
+      ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -23,6 +29,16 @@
           "awslogs-region": "ap-south-1",
           "awslogs-stream-prefix": "ecs"
         }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/hi || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
       }
     }
   ]
