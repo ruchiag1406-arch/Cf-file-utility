@@ -19,7 +19,7 @@ public class TestController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "Hi-v2 from task: " + hostname;
+        return "Hi-v3 from task: " + hostname;
     }
 
     @GetMapping("/load")
