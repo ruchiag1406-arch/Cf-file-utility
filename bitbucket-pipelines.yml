@@ -29,36 +29,18 @@ pipelines:
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest
 
-          # 6️⃣ Register new ECS task definition (Fargate, with execution role)
+          # 6️⃣ Prepare ECS task definition JSON
+          - export IMAGE_URI=${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
+          - sed -i "s|<IMAGE_URI>|$IMAGE_URI|g" ecs-task-def.json
+
+          # 7️⃣ Register new ECS task definition from JSON file
           - |
             TASK_DEF=$(aws ecs register-task-definition \
-              --family ${ECS_TASK_FAMILY} \
-              --requires-compatibilities FARGATE \
-              --network-mode awsvpc \
-              --cpu 256 \
-              --memory 512 \
-              --execution-role-arn arn:aws:iam::973811007952:role/ecsTaskExecutionRole \
-              --container-definitions "[
-                {
-                  \"name\": \"${ECS_CONTAINER_NAME}\",
-                  \"image\": \"${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}\",
-                  \"essential\": true,
-                  \"portMappings\": [{\"containerPort\":8080}],
-                  \"environment\": [
-                    {\"name\":\"SERVER_PORT\",\"value\":\"${SERVER_PORT}\"}
-                  ],
-                  \"healthCheck\": {
-                      \"command\": [\"CMD-SHELL\", \"curl -f http://localhost:\$SERVER_PORT/hi || exit 1\"],
-                      \"interval\": 30,
-                      \"timeout\": 5,
-                      \"retries\": 3,
-                      \"startPeriod\": 10
-                  }
-                }
-              ]" \
+              --cli-input-json file://ecs-task-def.json \
               --query "taskDefinition.taskDefinitionArn" \
               --output text)
             echo "Registered new task definition: $TASK_DEF"
+
 
           # 7️⃣ Update ECS service to use the new task definition
           - echo "ECS_CLUSTER=$ECS_CLUSTER ECS_SERVICE=$ECS_SERVICE TASK_DEF=$TASK_DEF"
