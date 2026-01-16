@@ -43,13 +43,7 @@ pipelines:
 
           # 8️⃣ Update ECS service with new task definition
           - echo "ECS_CLUSTER=$ECS_CLUSTER, ECS_SERVICE=$ECS_SERVICE, TASK_DEF=$TASK_DEF"
-          - aws ecs update-service \
-              --cluster ${ECS_CLUSTER} \
-              --service ${ECS_SERVICE} \
-              --task-definition $TASK_DEF \
-              --force-new-deployment \
-              --region ${AWS_DEFAULT_REGION}
-            && echo "✅ ECS service updated successfully."
+          - aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} --task-definition $TASK_DEF --force-new-deployment --region ${AWS_DEFAULT_REGION} && echo "✅ ECS service updated successfully."
 
 definitions:
   services:
