@@ -31,8 +31,40 @@ pipelines:
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest
 
-          # 8️⃣ Force ECS service redeployment
-          - aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} --force-new-deployment --region ${AWS_DEFAULT_REGION}
+            
+                      # ----------------------------
+          # 6️⃣ Register new ECS task definition with SERVER_PORT
+          # ----------------------------
+          - |
+            TASK_DEF=$(aws ecs register-task-definition \
+              --family ${ECS_TASK_FAMILY} \
+              --network-mode awsvpc \
+              --cpu 256 \
+              --memory 512 \
+              --container-definitions "[
+                {
+                  \"name\": \"${ECS_CONTAINER_NAME}\",
+                  \"image\": \"${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}\",
+                  \"essential\": true,
+                  \"portMappings\": [{\"containerPort\":8080,\"hostPort\":8080}],
+                  \"environment\": [
+                    {\"name\":\"SERVER_PORT\",\"value\":\"${SERVER_PORT}\"}
+                  ]
+                }
+              ]" \
+              --query "taskDefinition.taskDefinitionArn" \
+              --output text)
+            echo "Registered new task definition: $TASK_DEF"
+
+          # ----------------------------
+          # 7️⃣ Update ECS service to use the new task definition
+          # ----------------------------
+          - aws ecs update-service \
+              --cluster ${ECS_CLUSTER} \
+              --service ${ECS_SERVICE} \
+              --task-definition $TASK_DEF \
+              --force-new-deployment \
+              --region ${AWS_DEFAULT_REGION}
 
 definitions:
   services:
