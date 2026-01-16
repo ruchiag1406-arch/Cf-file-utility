@@ -2,6 +2,7 @@
 # Java / Maven
 # =========================
 target/
+bin/
 .mvn/wrapper/maven-wrapper.jar
 
 # =========================
@@ -46,6 +47,11 @@ build/
 .DS_Store
 
 # =========================
+# ECS / Docker
+# =========================
+Procfile
+
+# =========================
 # Security / Secrets
 # =========================
 # SSH keys
@@ -62,3 +68,8 @@ certs/
 # Environment / local overrides
 .env
 application-local.properties
+
+# =========================
+# Random / Generated folders
+# =========================
+00D*/

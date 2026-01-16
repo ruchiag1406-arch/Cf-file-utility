@@ -1,0 +1,47 @@
+image: maven:3.9.6-eclipse-temurin-8  # Changed to Java 8
+
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Build Spring Boot App
+          caches:
+            - maven
+          script:
+            - mvn clean package -DskipTests
+            - cp target/*.jar application.jar
+          artifacts:
+            - application.jar
+            - Procfile
+
+      - step:
+          name: Deploy to Elastic Beanstalk
+          script:
+            # Install tools
+            - apt-get update && apt-get install -y python3-pip unzip curl
+            - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+            - unzip awscliv2.zip
+            - ./aws/install
+            - pip3 install --upgrade --user awsebcli
+            - export PATH=$PATH:$HOME/.local/bin
+
+            # ---- DEBUG / VISIBILITY ----
+            - echo "===== AWS CLI Version ====="
+            - aws --version
+
+            - echo "===== AWS Identity (Account Details) ====="
+            - aws sts get-caller-identity
+
+            - echo "===== AWS Config ====="
+            - aws configure list
+
+            - echo "===== Environment Variables ====="
+            - echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION"
+            - echo "EB_APP_NAME=$EB_APP_NAME"
+            - echo "EB_ENV_NAME=$EB_ENV_NAME"
+
+            # ---- Elastic Beanstalk ----
+            - eb --version
+            - eb init "$EB_APP_NAME" --region "$AWS_DEFAULT_REGION" --platform "Corretto 8 running on 64bit Amazon Linux 2"
+            - eb use "$EB_ENV_NAME"
+            - eb deploy
