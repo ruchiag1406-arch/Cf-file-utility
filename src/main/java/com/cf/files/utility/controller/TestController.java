@@ -1,25 +1,17 @@
 package com.cf.files.utility.controller;
 
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.net.InetAddress;
 
-
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.cf.files.utility.model.RegisterModel;
-import com.cf.files.utility.service.PropService;
-import com.cf.files.utility.util.InstanceUtil;
 
 @RestController
 public class TestController {
-	
-	  /**
+
+    /**
      * ECS-friendly /hi endpoint
      */
+    @GetMapping("/hi")
     public String hi() {
         String hostname = "UNKNOWN";
         try {
@@ -30,15 +22,12 @@ public class TestController {
         return "Hi-v2 from task: " + hostname;
     }
 
-	
-	@GetMapping("/load")
-	public String load() {
-	    long sum = 0;
-	    for (long i = 0; i < 1_000_000_000L; i++) {
-	        sum += i;
-	    }
-	    return "DONE";
-	}
-
-
+    @GetMapping("/load")
+    public String load() {
+        long sum = 0;
+        for (long i = 0; i < 1_000_000_000L; i++) {
+            sum += i;
+        }
+        return "DONE";
+    }
 }
