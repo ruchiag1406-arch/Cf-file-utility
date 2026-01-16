@@ -31,13 +31,13 @@ pipelines:
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest
 
-            
-                      # ----------------------------
+          # ----------------------------
           # 6️⃣ Register new ECS task definition with SERVER_PORT
           # ----------------------------
           - |
             TASK_DEF=$(aws ecs register-task-definition \
               --family ${ECS_TASK_FAMILY} \
+              --requires-compatibilities FARGATE \
               --network-mode awsvpc \
               --cpu 256 \
               --memory 512 \
@@ -46,7 +46,7 @@ pipelines:
                   \"name\": \"${ECS_CONTAINER_NAME}\",
                   \"image\": \"${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}\",
                   \"essential\": true,
-                  \"portMappings\": [{\"containerPort\":8080,\"hostPort\":8080}],
+                  \"portMappings\": [{\"containerPort\":8080}],
                   \"environment\": [
                     {\"name\":\"SERVER_PORT\",\"value\":\"${SERVER_PORT}\"}
                   ]
