@@ -201,7 +201,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.6.4</version>
                 <configuration>
+                    <mainClass>com.cf.files.utility.FilesUtilityApp</mainClass>
+
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
