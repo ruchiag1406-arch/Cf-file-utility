@@ -17,8 +17,7 @@ pipelines:
 
           # 3️⃣ Generate unique Docker tag (git sha + timestamp)
           - export IMAGE_TAG=${BITBUCKET_COMMIT:0:7}-$(date +%Y%m%d%H%M%S)
-          - echo "Using image tag: ${IMAGE_TAG}"
-
+          
           # 4️⃣ Build Docker image
           - docker build -t ${ECR_REPO_NAME}:${IMAGE_TAG} .
 
