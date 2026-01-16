@@ -16,7 +16,7 @@ pipelines:
           - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
           # 3️⃣ Generate unique Docker tag (git sha + timestamp)
-          - IMAGE_TAG=${BITBUCKET_COMMIT:0:7}-$(date +%Y%m%d%H%M%S)
+          - "IMAGE_TAG=${BITBUCKET_COMMIT:0:7}-$(date +%Y%m%d%H%M%S)"
           - echo "Using image tag: ${IMAGE_TAG}"
 
           # 4️⃣ Build Docker image
