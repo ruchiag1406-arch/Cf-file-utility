@@ -41,6 +41,7 @@ pipelines:
               --network-mode awsvpc \
               --cpu 256 \
               --memory 512 \
+              --execution-role-arn arn:aws:iam::973811007952:role/ecsTaskExecutionRole \
               --container-definitions "[
                 {
                   \"name\": \"${ECS_CONTAINER_NAME}\",
