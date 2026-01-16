@@ -19,7 +19,6 @@
       "environment": [
         { "name": "SERVER_PORT", "value": "8080" }
       ]
-      // ✅ Removed ECS container health check
     }
   ]
 }
