@@ -12,28 +12,24 @@ pipelines:
           - set -e
           - aws --version
 
-          # 2️⃣ Login to Amazon ECR
+          # 1️⃣ Login to Amazon ECR
           - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-          # 3️⃣ Generate unique Docker tag (git sha + timestamp)
+          # 2️⃣ Generate unique Docker tag (git sha + timestamp)
           - export IMAGE_TAG=${BITBUCKET_COMMIT:0:7}-$(date +%Y%m%d%H%M%S)
-          
-          # 4️⃣ Build Docker image
+
+          # 3️⃣ Build Docker image
           - docker build -t ${ECR_REPO_NAME}:${IMAGE_TAG} .
 
-          # 5️⃣ Tag image with unique tag
+          # 4️⃣ Tag image for ECR
           - docker tag ${ECR_REPO_NAME}:${IMAGE_TAG} ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
-
-          # 6️⃣ Tag same image as latest
           - docker tag ${ECR_REPO_NAME}:${IMAGE_TAG} ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest
 
-          # 7️⃣ Push images to ECR
+          # 5️⃣ Push images to ECR
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest
 
-          # ----------------------------
-          # 6️⃣ Register new ECS task definition with SERVER_PORT
-          # ----------------------------
+          # 6️⃣ Register new ECS task definition (Fargate, with execution role)
           - |
             TASK_DEF=$(aws ecs register-task-definition \
               --family ${ECS_TASK_FAMILY} \
@@ -50,16 +46,21 @@ pipelines:
                   \"portMappings\": [{\"containerPort\":8080}],
                   \"environment\": [
                     {\"name\":\"SERVER_PORT\",\"value\":\"${SERVER_PORT}\"}
-                  ]
+                  ],
+                  \"healthCheck\": {
+                      \"command\": [\"CMD-SHELL\", \"curl -f http://localhost:\$SERVER_PORT/hi || exit 1\"],
+                      \"interval\": 30,
+                      \"timeout\": 5,
+                      \"retries\": 3,
+                      \"startPeriod\": 10
+                  }
                 }
               ]" \
               --query "taskDefinition.taskDefinitionArn" \
               --output text)
             echo "Registered new task definition: $TASK_DEF"
 
-          # ----------------------------
           # 7️⃣ Update ECS service to use the new task definition
-          # ----------------------------
           - echo "ECS_CLUSTER=$ECS_CLUSTER ECS_SERVICE=$ECS_SERVICE TASK_DEF=$TASK_DEF"
           - aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} --task-definition $TASK_DEF --force-new-deployment --region ${AWS_DEFAULT_REGION}
 
@@ -67,3 +68,4 @@ definitions:
   services:
     docker:
       memory: 3072
+
