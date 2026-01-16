@@ -1,4 +1,4 @@
-image: atlassian/default-image:3
+image: amazon/aws-cli:2.15.0
 
 pipelines:
   default:
@@ -9,10 +9,8 @@ pipelines:
         caches:
           - docker
         script:
-          # 1️⃣ Configure AWS credentials
-          - export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-          - export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-          - export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+          - set -e
+          - aws --version
 
           # 2️⃣ Login to Amazon ECR
           - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
