@@ -1,5 +1,5 @@
 {
-  "family": "cf-files-utility",
+  "family": "cf-files-utility-task-new-v1",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "256",
@@ -18,17 +18,8 @@
       ],
       "environment": [
         { "name": "SERVER_PORT", "value": "8080" }
-      ],
-      "healthCheck": {
-        "command": [
-          "CMD-SHELL",
-          "curl -f http://localhost:8080/hi || exit 1"
-        ],
-        "interval": 30,
-        "timeout": 5,
-        "retries": 3,
-        "startPeriod": 10
-      }
+      ]
+      // ✅ Removed ECS container health check
     }
   ]
 }

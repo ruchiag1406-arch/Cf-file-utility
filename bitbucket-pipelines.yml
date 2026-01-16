@@ -15,7 +15,7 @@ pipelines:
           # 1️⃣ Login to Amazon ECR
           - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
-          # 2️⃣ Generate unique Docker tag (git sha + timestamp)
+          # 2️⃣ Generate unique Docker tag (git commit + timestamp)
           - export IMAGE_TAG=${BITBUCKET_COMMIT:0:7}-$(date +%Y%m%d%H%M%S)
 
           # 3️⃣ Build Docker image
@@ -29,25 +29,29 @@ pipelines:
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
           - docker push ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:latest
 
-          # 6️⃣ Prepare ECS task definition JSON
+          # 6️⃣ Replace <IMAGE_URI> in ECS task definition JSON
           - export IMAGE_URI=${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO_NAME}:${IMAGE_TAG}
           - sed -i "s|<IMAGE_URI>|$IMAGE_URI|g" ecs-task-def.json
 
-          # 7️⃣ Register new ECS task definition from JSON file
+          # 7️⃣ Register new ECS task definition
           - |
             TASK_DEF=$(aws ecs register-task-definition \
               --cli-input-json file://ecs-task-def.json \
               --query "taskDefinition.taskDefinitionArn" \
               --output text)
-            echo "Registered new task definition: $TASK_DEF"
+            echo "✅ Registered new ECS task definition: $TASK_DEF"
 
-
-          # 7️⃣ Update ECS service to use the new task definition
-          - echo "ECS_CLUSTER=$ECS_CLUSTER ECS_SERVICE=$ECS_SERVICE TASK_DEF=$TASK_DEF"
-          - aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} --task-definition $TASK_DEF --force-new-deployment --region ${AWS_DEFAULT_REGION}
+          # 8️⃣ Update ECS service with new task definition
+          - echo "ECS_CLUSTER=$ECS_CLUSTER, ECS_SERVICE=$ECS_SERVICE, TASK_DEF=$TASK_DEF"
+          - aws ecs update-service \
+              --cluster ${ECS_CLUSTER} \
+              --service ${ECS_SERVICE} \
+              --task-definition $TASK_DEF \
+              --force-new-deployment \
+              --region ${AWS_DEFAULT_REGION}
+            && echo "✅ ECS service updated successfully."
 
 definitions:
   services:
     docker:
       memory: 3072
-
